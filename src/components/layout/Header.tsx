@@ -1,147 +1,212 @@
-"use client";
+'use client';
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation"; // 🟢 Added to detect the current page route
+import { usePathname } from "next/navigation";
+import { 
+  FiMenu, 
+  FiX, 
+  FiPhoneCall, 
+  FiArrowRight,
+  FiHome,
+  FiLayers,
+  FiBriefcase,
+  FiInfo,
+  FiImage,
+  FiHelpCircle,
+  FiMail
+} from "react-icons/fi";
 
+// Navigation items
 const navItems = [
-  { name: "Home", href: "/" },
-  { name: "About", href: "/about" },
-  { name: "Services", href: "/services", hasDropdown: true },
-  { name: "Projects", href: "/projects", hasDropdown: true },
-  { name: "Gallery", href: "/gallery" },
-  { name: "FAQ", href: "/faq" },
-  { name: "Contact", href: "/contact" },
+  { name: "Home", href: "/", icon: FiHome },
+  { name: "Services", href: "/services", icon: FiLayers },
+  { name: "Projects", href: "/projects", icon: FiBriefcase },
+  { name: "About", href: "/about", icon: FiInfo },
+  { name: "Gallery", href: "/gallery", icon: FiImage },
+  { name: "FAQ", href: "/faq", icon: FiHelpCircle },
+  { name: "Contact", href: "/contact", icon: FiMail },
 ];
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
-  
-  // 🟢 Detect if we are currently looking at the home root page
-  const isHomePage = pathname === "/";
+
+  // Handle scroll effect
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Close menu on route change
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [pathname]);
+
+  // Prevent body scroll when menu is open
+  useEffect(() => {
+    if (menuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [menuOpen]);
 
   return (
-    /* 
-      🟢 DYNAMIC THEME FIX: 
-      If it's the home page, it stays absolute and transparent over the hero asset.
-      If it's an inner page (like /about), it turns into a solid structural white block 
-      with a clean bottom border border-slate-100 so it's perfectly visible on light backgrounds!
-    */
-    <header 
-      className={`${
-        isHomePage 
-          ? "absolute top-0 left-0 right-0 bg-transparent" 
-          : "relative bg-white border-b border-slate-100"
-      } z-50 w-full`}
+    <header
+      className={`fixed top-0 left-0 right-0 z-50 w-full transition-all duration-300 ${
+        scrolled
+          ? "bg-[#ECE6D8]/95 backdrop-blur-md shadow-lg border-b-2 border-[#1B1F1E] py-2"
+          : "bg-[#ECE6D8] py-3 sm:py-4"
+      }`}
+      role="banner"
+      aria-label="Main navigation"
     >
-      <div className="max-w-7xl mx-auto h-24 px-6 flex items-center justify-between">
-        
-        {/* Dark Slate Logo with premium Cyan accent */}
-        <Link href="/" className="text-2xl font-black tracking-tight text-slate-900 flex items-center gap-1">
-          Waterproof<span className="text-blue-600 font-normal text-xl">PRO</span>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between">
+        {/* Logo - STRATA with mark */}
+        <Link 
+          href="/" 
+          className="flex items-center group py-1 flex-shrink-0"
+          aria-label="STRATA - Home"
+        >
+          <div className="flex items-center gap-2.5">
+            <span className="w-3.5 h-3.5 bg-[#E3982F] border-2 border-[#1B1F1E] inline-block"></span>
+            <span className="font-['Archivo_Black'] text-[21px] tracking-[-.01em] text-[#1B1F1E]">
+              STRATA
+            </span>
+          </div>
         </Link>
 
-        {/* Crisp Navigation Links */}
-        <nav className="hidden lg:flex items-center gap-8">
+        {/* Desktop Navigation */}
+        <nav 
+          className="hidden lg:flex items-center gap-8"
+          aria-label="Main navigation"
+          role="navigation"
+        >
           {navItems.map((item) => {
-            // Check if this specific item link matches our current URL location path
-            const isActive = pathname === item.href;
-            
+            const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
             return (
               <Link
                 key={item.name}
                 href={item.href}
-                className={`group text-sm font-bold flex items-center gap-1 transition duration-200 ${
+                className={`font-['IBM_Plex_Mono'] text-[13px] tracking-[.03em] uppercase transition-all duration-200 relative pb-1 ${
                   isActive 
-                    ? "text-blue-600" 
-                    : "text-slate-900 hover:text-blue-600"
+                    ? "text-[#E3982F]" 
+                    : "text-[#1B1F1E] hover:text-[#E3982F]"
                 }`}
+                aria-current={isActive ? "page" : undefined}
               >
                 {item.name}
-                
-                {/* Accordion Dropdown Arrow Indicator */}
-                {item.hasDropdown && (
-                  <svg 
-                    className={`w-3.5 h-3.5 transform group-hover:translate-y-0.5 transition-transform duration-200 ${
-                      isActive ? "text-blue-600" : "text-slate-400 group-hover:text-blue-600"
-                    }`} 
-                    fill="none" 
-                    viewBox="0 0 24 24" 
-                    stroke="currentColor" 
-                    strokeWidth={2.5}
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                  </svg>
-                )}
+                <span 
+                  className={`absolute bottom-0 left-0 right-0 h-0.5 bg-[#E3982F] rounded-full transition-all duration-200 ${
+                    isActive ? "w-full" : "w-0 group-hover:w-full"
+                  }`}
+                  aria-hidden="true"
+                />
               </Link>
             );
           })}
         </nav>
 
-        {/* Primary Call-to-Action */}
-        <div className="hidden lg:flex items-center">
+        {/* Desktop Right Actions */}
+        <div className="hidden lg:flex items-center gap-3 flex-shrink-0">
+          <a
+            href="tel:+919876543210"
+            className="font-['IBM_Plex_Mono'] text-[13.5px] text-[#1B1F1E] hover:text-[#E3982F] transition-colors"
+            aria-label="Call us at +91 98765 43210"
+          >
+            +91 98765 43210
+          </a>
+
           <Link
             href="/contact"
-            className="px-6 py-2.5 rounded-full bg-blue-600 text-white hover:bg-blue-700 transition text-sm font-bold shadow-md shadow-blue-500/10 cursor-pointer"
+            className="btn inline-flex items-center gap-2.5 font-['IBM_Plex_Mono'] text-[13.5px] tracking-[.04em] uppercase px-6 py-3.5 border-2 border-[#1B1F1E] bg-[#1B1F1E] text-[#ECE6D8] hover:translate-x-[-2px] hover:translate-y-[-2px] transition-all duration-150"
           >
-            Get Free Quote
+            Get Inspection
           </Link>
         </div>
 
-        {/* Mobile Toggle Interface */}
+        {/* Mobile Menu Toggle */}
         <button
           onClick={() => setMenuOpen(!menuOpen)}
-          className="lg:hidden p-2 text-slate-900 focus:outline-none z-50 relative"
-          aria-label="Toggle Menu"
+          className="lg:hidden p-2 rounded-lg bg-[#DFD6C1] border-2 border-[#1B1F1E] text-[#1B1F1E] hover:text-[#E3982F] hover:border-[#E3982F] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#E3982F]/50 flex-shrink-0"
+          aria-label={menuOpen ? "Close menu" : "Open menu"}
+          aria-expanded={menuOpen}
         >
-          <div className="w-6 h-5 flex flex-col justify-between relative">
-            <span className={`w-full h-0.5 bg-current rounded transition-transform ${menuOpen ? 'rotate-45 translate-y-2' : ''}`} />
-            <span className={`w-full h-0.5 bg-current rounded transition-opacity ${menuOpen ? 'opacity-0' : ''}`} />
-            <span className={`w-full h-0.5 bg-current rounded transition-transform ${menuOpen ? '-rotate-45 -translate-y-2' : ''}`} />
-          </div>
+          {menuOpen ? (
+            <FiX className="w-5 h-5" aria-hidden="true" />
+          ) : (
+            <FiMenu className="w-5 h-5" aria-hidden="true" />
+          )}
         </button>
       </div>
 
-      {/* Glassmorphism Floating Drawer Overlay Panel for Mobile screen sizes */}
-      {menuOpen && (
-        <div className="lg:hidden absolute top-20 left-4 right-4 bg-white/95 backdrop-blur-xl border border-slate-200/60 rounded-3xl shadow-2xl p-4 animate-in fade-in zoom-in-95 duration-200">
-          <nav className="flex flex-col space-y-1">
+      {/* Mobile Slide-Down Menu */}
+      <div
+        className={`lg:hidden overflow-hidden transition-all duration-300 ease-in-out ${
+          menuOpen ? "max-h-[600px] opacity-100" : "max-h-0 opacity-0"
+        }`}
+        role="navigation"
+        aria-label="Mobile navigation"
+      >
+        <div className="bg-[#1B1F1E] border-b-2 border-[#4A5A56] shadow-2xl p-5">
+          <nav className="grid grid-cols-4 gap-2.5">
             {navItems.map((item) => {
-              const isActive = pathname === item.href;
+              const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
+              const IconComponent = item.icon;
+
               return (
                 <Link
                   key={item.name}
                   href={item.href}
                   onClick={() => setMenuOpen(false)}
-                  className={`flex items-center justify-between px-4 py-3 text-base font-bold rounded-2xl transition ${
+                  className={`flex flex-col items-center justify-center p-3 rounded-2xl transition-all duration-200 gap-1.5 ${
                     isActive 
-                      ? "text-blue-600 bg-blue-50/50" 
-                      : "text-slate-800 hover:text-blue-600 hover:bg-slate-50"
+                      ? "bg-[#E3982F] text-[#1B1F1E] shadow-lg shadow-[#E3982F]/30" 
+                      : "bg-[#173339] border border-[#4A5A56] text-[#ECE6D8] hover:bg-[#2E4A4F] hover:text-white"
                   }`}
+                  aria-current={isActive ? "page" : undefined}
                 >
-                  <span>{item.name}</span>
-                  {item.hasDropdown && (
-                    <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                    </svg>
-                  )}
+                  <IconComponent 
+                    className={`w-5 h-5 ${isActive ? "text-[#1B1F1E]" : "text-[#E3982F]"}`} 
+                    aria-hidden="true" 
+                  />
+                  <span className="text-[10px] font-['IBM_Plex_Mono'] font-bold tracking-tight truncate w-full text-center">
+                    {item.name}
+                  </span>
                 </Link>
               );
             })}
-            
-            <div className="pt-4 mt-2 border-t border-slate-100 px-2">
-              <Link
-                href="/contact"
-                onClick={() => setMenuOpen(false)}
-                className="block w-full text-center py-3.5 rounded-full bg-blue-600 text-white font-bold shadow-lg shadow-blue-500/20 active:scale-98 transition duration-200"
-              >
-                Get Free Quote
-              </Link>
-            </div>
           </nav>
+
+          {/* Mobile Contact Actions */}
+          <div className="pt-4 mt-4 border-t border-[#4A5A56] flex flex-col gap-2.5">
+            <a
+              href="tel:+919876543210"
+              className="w-full text-center py-2.5 rounded-xl border-2 border-[#4A5A56] bg-[#173339] text-[#ECE6D8] font-['IBM_Plex_Mono'] text-xs font-semibold flex items-center justify-center gap-2 hover:border-[#E3982F] hover:text-[#E3982F] transition-colors"
+              aria-label="Call us at +91 98765 43210"
+            >
+              <FiPhoneCall className="w-3.5 h-3.5 text-[#E3982F]" aria-hidden="true" />
+              <span>+91 98765 43210</span>
+            </a>
+            <Link
+              href="/contact"
+              onClick={() => setMenuOpen(false)}
+              className="w-full text-center py-2.5 rounded-xl bg-[#E3982F] hover:bg-[#c9892a] text-[#1B1F1E] font-['IBM_Plex_Mono'] text-xs font-bold flex items-center justify-center gap-1.5 transition-colors border-2 border-[#E3982F]"
+            >
+              <span>Get Inspection</span>
+              <FiArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
+            </Link>
+          </div>
         </div>
-      )}
+      </div>
     </header>
   );
 }

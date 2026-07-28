@@ -13,7 +13,7 @@ const homeContent = {
 
     secondaryButton: "Our Projects",
 
-    image: "/clients/waterproof-pro/hero/hero.jpg",
+    image: "/clients/waterproof-pro/hero/hero.png",
 
     stats: [
       {
