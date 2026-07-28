@@ -1,4 +1,4 @@
-import WorkEstimate from "@/components/WorkEstimate";
+import WorkEstimate from "@/components/layout/WorkEstimate";
 
 export default function EstimatePage() {
   return (
